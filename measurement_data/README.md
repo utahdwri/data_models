@@ -7,4 +7,4 @@ DWRi currently stores and manages these data within a relational database called
 The information/data models used by both of these systems are documented here:
 
 * DWRi DIVRT database data model
-* [HydroServer database data model](HydroServer/)
+* [HydroServer database data model](hydroserver/)
