@@ -68,14 +68,17 @@ The Location entity locates the Thing. A Thing’s Location entity is defined as
 
 | Required | Attribute | Definition | Data Type |
 | -------- | --------- | ---------- | --------- |
-|  |  |  |  |
-|  |  |  |  |
-|  |  |  |  |
-|  |  |  |  |
-|  |  |  |  |
-|  |  |  |  |
-|  |  |  |  |
-|  |  |  |  |
+| M | id | A primary key unique identifier for the Location. | UUID |
+| M | name | A text string name for the Location. Can be the same as the name of the Thing. | String |
+| M | description | A text string description for the Location. Can be the same as the name of the Thing. | String |
+| M | encodingType | The encoding type of the Location - usually "GeoJSON". | String |
+| M | latitude | A floating point number representing the latitude of the location using WGS84 coordinates. | Float |
+| M | longitude | A floating point number representing the longitude of the location using WGS84 coordinates. | Float |
+| O | elevation_m | A floating point number representing the elevation of the location in meters. | Float |
+| O | elevationDatum | A string indicating the elevation datum used by the site to specify the elevation. | String |
+| O | state | The name of the state in which the Location resides. | String |
+| O | county | The name of the county in which the Location resides. | String |
+| O | country | The name of the country in which the Location resides. | String |
 
 ## Observation
 
@@ -211,7 +214,7 @@ A thing is an object of the physical world (physical things) or the information 
 | M | siteType | A text string specifying the type of Site represented by the Thing - e.g., "Streamflow Gage", "Water Quality Station", "Weather Station", "Diversion Station", etc. | String |
 | M | isPrivate | An access control flag indicating whether the Thing is dicoverable and whethger metadata for the Thing is publicly available. | Boolean |
 | O | dataDisclaimer | A text string displayed on the HydroServer landing page for the Thing (Site) that specifies a data disclaimer for data at that site. | String |
-| M | LocationId | A foreign key identifier for the Thing's location. | UUID |
+| M | locationId | A foreign key identifier for the Thing's location. | UUID |
 
 ## ThingAssociation
 
