@@ -4,19 +4,19 @@ DWRi uses HydroServer for storing and managing time series of metasurement data 
 
 The following is an entity relationship diagram illustrating the HydroServer data model design. Primary and foreign keys are specified in the first column of each entity. Mandatory attributes are specified with "(M)" preceding the attribute name. Optional attributes are specified with "(O)" preceding the attribute name. Data types are specified following the attribute name. Given that some attributes were either derived from or mapped to attributes that appear in the Observations Data Model (ODM2, see background section below), the third column shows the the mapping of attributes in HydroServer's data model to ODM attributes.
 
-<img src="images/hydroserver_data_model.png" alt="HydroServer Data Model" width="600"/>
+![HydroServer Data Model](../../.gitbook/assets/hydroserver_data_model.png)
 
 Click [here](hydroserver_data_model_data_dictionary.md) to access a data dictionary for the HydroServer data model.
 
 ## Physical Database Implementation
 
-TODO: Describe DWRi's operational HydroServer database instance. 
+TODO: Describe DWRi's operational HydroServer database instance.
 
 ## Background on HydroServer's Data Model Design
 
-The HydroServer software is based on the Open Geospatial Consortium's [SensorThings](https://www.ogc.org/publications/standard/sensorthings/) Application Programming Interface (API) and data model standard specification. In particular, HydroServer implements [OGC SensorThings API Part 1: Sensing Version 1.1](https://docs.ogc.org/is/18-088/18-088.html) and adopts the data model used by SensorThings. The following UML diagram illustrates the entities used by SensorThings to represent sensor data.   
+The HydroServer software is based on the Open Geospatial Consortium's [SensorThings](https://www.ogc.org/publications/standard/sensorthings/) Application Programming Interface (API) and data model standard specification. In particular, HydroServer implements [OGC SensorThings API Part 1: Sensing Version 1.1](https://docs.ogc.org/is/18-088/18-088.html) and adopts the data model used by SensorThings. The following UML diagram illustrates the entities used by SensorThings to represent sensor data.
 
-<img src="images/ogc_sensorthings_data_model.png" alt="OGC SensorThings Data Model" width="600"/>
+![OGC SensorThings Data Model](../../.gitbook/assets/ogc_sensorthings_data_model.png)
 
 Given that SensorThings is an API standard specification, SensorThings' data model is expressed as UML since it has multiple physical implementations - e.g., as a JSON schema for encoding data for transfer over the Internet and as a database data model for storing data. The SensorThings standard document does not specify how data should be stored on disk for delivery via the API. This is left to the implementers of the API.
 
@@ -28,7 +28,7 @@ SensorThings is a generic Internet of Things (IoT) API. It has been implemented 
 * **Sensor**: A Sensor is an instrument that observes a property or phenomenon with the goal of producing an estimate of the value of the property.
 * **ObservedProperty**: An ObservedProperty specifies the phenomenon of an Observation (e.g., flow, temperature, pH, dissolved oxygen concentration, etc.).
 * **DataStream**: A Datastream groups a collection of Observations measuring the same ObservedProperty and produced by the same Sensor. This is a time series of observations.
-* **Observation**: An Observation is the act of measuring or otherwise determining the value of a property, including its numeric result and the date/time at which it was observed. 
+* **Observation**: An Observation is the act of measuring or otherwise determining the value of a property, including its numeric result and the date/time at which it was observed.
 * **FeatureOfInterest**: An Observation results in a value being assigned to a phenomenon. The phenomenon is a property of a feature, the latter being the FeatureOfInterest of the Observation. In the context of the Internet of Things, many Observations’ FeatureOfInterest can be the Location of the Thing. In the context of environmental monitoring, the FeatureOfInteres may be a real-world feature such as a stream reach, watershed, aquifer, etc.
 
 The level of generality in the SensorThings data model means that it lacks specific information needed for unambiguous interpretation of environmental sensor data. However, the SensorThings data model provides a mechanism for extending entities to include additional required and optional attributes. Each entity includes a `properties` or `parameters` attribute that can be extended to contain additional attributes. Thus, to enhance SensorThings utility for use with environmental sensor data while keeping its standardized API capability, HydroServer extends the SensorThings data model using this extensibility mechanism while adding additional required and optional metadata attributes from Version 2.0 of the Observations Data Model (ODM2).
@@ -37,18 +37,4 @@ Horsburgh, J. S., Aufdenkampe, A. K., Mayorga, E., Lehnert, K. A., Hsu, L., Song
 
 ODM2 was designed for storing and integrating a broad variety of feature-based earth observations. However, for the purpose of HydroServer, only ODM2's representation of fixed point-based time series data was used (i.e., time series of observations from fixed location monitoring sites). For illustration purposes, a UML diagram of the ODM2 information model for time series data derived from the overall ODM2 information model is included below. The ODM2 data model for time series data was blended with the SensorThings data model to produce HydroServer's data model.
 
-<img src="images/odm_time_series_information_model.png" alt="ODM Time Series Information Model" width="600"/>
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
+![ODM Time Series Information Model](../../.gitbook/assets/odm_time_series_information_model.png)
