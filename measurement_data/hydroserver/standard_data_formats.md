@@ -1,36 +1,38 @@
 # Standard Data Format Specifications for DWRi's Data Scraping System
 
-DWRi retrieves time series of flow and other measurements from multiple different data providers. To accomplish this, DWRi maintains a data scraping system that manages automated jobs that retrieve data and load them into DWRi's database. Historically, data have been scraped from different sources in whatever format in which they were provided. This approach provides flexibility to data providers, but incurs the overhead for DWRi of having to adapt to many different data formats along with inevitable errors that occur when sources change their formats for whatever reason.
+DWRi retrieves time series of flow and other measurements from multiple different data providers. To accomplish this, DWRi maintains a data scraping system (HydroServer's automated Job Orchestration System) that manages automated jobs that retrieve data and load them into DWRi's database. Historically, data have been scraped from different sources in whatever format in which they were provided. This approach provides flexibility to data providers, but incurs the overhead for DWRi of having to adapt to many different data formats along with inevitable errors that occur when sources change their formats for whatever reason.
 
-Standardizing the acceptable data formats to be used by data providers is a way for DWRi to reduce the amount of time and effort required to build and maintain scripts that scrape data from different sources along with reducing errors in interpreting data when loading them into DWRi's database. This document describes DWRi's preferred and approved data formats for use by partners who provide data to DWRi. 
+Standardizing the acceptable data formats to be used by data providers is a way for DWRi to reduce the amount of time and effort required to build and maintain code that scrapes data from different sources along with reducing errors in interpreting data when loading them into DWRi's database. This document describes DWRi's preferred and approved data formats for use by partners who provide data to DWRi. 
 
 There are two acceptable formats - comma separated values (CSV) and JavaScript Object Notation (JSON) that are described in the sections below. Both of these formats are designed for simple encoding of time series of observational data along with associated metadata that will aid in their interpretation.
 
-As an alternative to these data formats, data providers may also serve their data through a public OGC SensorThings API (version 1.1) with the Data Array extension enabled. The SensorThings API is a standard for managing and sharing sensor data, offering a RESTful interface to access time series data from Information of Things (IoT) devices. For more information, refer to the [SensorThings API v1.1 specification](https://docs.ogc.org/is/18-088/18-088.html).
+As an alternative to these data formats, data providers may also serve their data through a public Open Geospatial Consortium (OGC) SensorThings API (version 1.1) with the Data Array extension enabled. The SensorThings API is a standard for managing and sharing sensor data, offering a RESTful interface to access time series data from Internet of Things (IoT) devices. For more information, refer to the [SensorThings API v1.1 specification](https://docs.ogc.org/is/18-088/18-088.html).
 
 ## Definitions
 
 The following are useful definitions in the specification of the acceptable data formats:
 
 * **Monitoring site**: a location at which observations are made.
-* **Sensor**: A sensing device used to collect observations.
+* **Sensor**: A sensing device or other method used to collect observations.
 * **ObservedProperty**: The variable that is measured (e.g., water level, flow, storage volume)
 * **Datastream**: is a time series of numeric observations of a particular observed variable  collected at a single monitoring site/location, using a consistent sensor or observation procedure.
 * **ProcessingLevel**: The degree of processing or quality control that has been applied to observations (e.g., raw data versus quality controlle data).
 * **Units**: The measurment units associated with an observation (e.g., cubic feet per second, acre-feet, feet).
-* **ResultQualifier**: A data qualifying comment added to a data value.
+* **ResultQualifier**: A data qualifying comment applied to an observed value consisting of a code and description.
 
 ## Design Principles
 
 The data formats described below were designed according to the following principles:
 
-* The data formats should enable encoding of both data and descriptive metadata 
-* The data formats should be simple to create
-* The data formats should be simple to retrieve and parse
+* The data formats should enable encoding of both data and descriptive metadata. 
+* The data formats should be simple to create.
+* The data formats should be simple to retrieve and parse.
 
 ## Handling Datetime Values
 
-It is necessary that datetime values representing timestamps for collected data be represented accurately in data files supplied to DWRi to avoid any ambiguity in when a data value was recorded. For both of DWRi's accepted data formats (CSV and JSON), all timestamps MUST be specified as a single string value encoded using the [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601). This international standard for formatting datatime values provides some flexibility; however, we define here the exact format that MUST be used in all provided data as follows:
+It is necessary that datatime values representing timestamps for collected data be represented accurately in data files supplied to DWRi to avoid any ambiguity in when a data value was recorded. DWRi stores all data values using UTC timstamps in their HydroServer database. Thus, timestamps MUST be encoded correctly to ensure that they are provided as UTC or include enough information that they can be converted to UTC.
+
+For both of DWRi's accepted data formats (CSV and JSON), all timestamps MUST be specified as a single string value encoded using the [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601). This international standard for formatting datatime values provides some flexibility; however, we define here the exact format that MUST be used in all provided data as follows:
 
 “YYYY-MM-DDThh:mm:ss.sTZD” 
 
@@ -70,24 +72,25 @@ The following are the requirements for the CSV file format:
 
 1. Data MUST be organized in a "wide" tabular format with a single column containing the timestamp for each row and where each column represents a time series of data values for a Datastream.
 2. A comma character MUST be used as the delimiter between columns of data.
-3. Each CSV file MUST have a single column as the first column in the table with the column name "timestamp" that contains the timestamp of the observed data values. Each subsequent column after the Timestamp column MUST contain a time series of observed data.
-4. Datetime values in the timestamp column MUST be specified in the ISO 8601 datetime format.
-5. Timestamps for data MUST either be supplied using UTC time or MUST specify the offset from UTC time as part of the timestamp value to avoid ambiguity in specification of time offsets and daylight saving time.
-6. Each CSV file MUST contain at least one column of data values but can represent additional time series of data in subsequent columns, with data values for each time series contained in a separate column. 
-7. Files may have a descriptive header with metadata about the contents of the file. Each row in the descriptive header MUST be prefixed with a hash symbol and a space - "# ". 
-8. Each CSV file MUST have a single row that follows any descriptive header and that contains names for each column in the file. It is recommended that column names are defined and described in the descriptive header at the top of the file. The row with column names should not be prefixed with "# ".
-9. Each file MUST use either a single numeric value to represent missing data points (e.g., -9999 is recommended) or must use a single string value (e.g., "NaN"). This NoData value should be defined in the descriptive header for the file. All non-numeric values included in numeric data value columns will be converted to -9999 upon loading into DWRi's database.
-10. Column names used in the header row of the CSV file MUST be unique and MUST consist of alphanumeric characters using a through z, 0 through 9, dashes, or underscores.  
+3. Each CSV file MUST have a single column as the first column in the table with the column name "timestamp" that contains the timestamp of the observed data values. 
+4. Each subsequent column after the Timestamp column MUST contain a time series of observed data. See the exception to this rule below for handling result qualifiers.
+5. Datetime values in the "timestamp" column MUST be specified in the ISO 8601 datetime format.
+6. Timestamps for data MUST either be supplied using UTC time or MUST specify the offset from UTC time as part of the timestamp value to avoid ambiguity in specification of time offsets and daylight saving time.
+7. Each CSV file MUST contain at least one column of data values but can represent additional time series of data in subsequent columns, with data values for each time series contained in a separate column. 
+8. Files may have a descriptive header of any length with metadata about the contents of the file. Each row in the descriptive header MUST be prefixed with a hash symbol and a space - "# ". 
+9. Each CSV file MUST have a single row that follows any descriptive header and that contains names for each column in the file. It is recommended that column names are defined and described in the descriptive header at the top of the file. The row with column names should not be prefixed with "# ".
+10. Each file MUST use either a single numeric value to represent missing data points (e.g., -9999 is recommended) or must use a single string value (e.g., "NaN"). This NoData value should be defined in the descriptive header for the file. All non-numeric values included in numeric data value columns will be converted to -9999 upon loading into DWRi's database.
+11. Column names used in the header row of the CSV file MUST be unique and MUST consist of alphanumeric characters using a through z, 0 through 9, dashes, or underscores. 
 
 The following is an example showing the CSV file format where timestamps are specified in UTC time. The ". . ." characters indicate that any number of descriptive header rows may be included and any number of data rows may be included:
 
-```csv
+```CSV
 # Descriptive header row 1
 # . . .
 # Descriptive header row n
 timestamp,waterlevel_ft,discharge_cfs
-2023-10-26T08:00:00Z,20.5,35.0
-2023-10-26T08:15:00Z,21.2,33.1
+2023-10-26T08:00:00Z,20.5,33.1
+2023-10-26T08:15:00Z,21.2,35.0
 2023-10-26T08:30:00Z,21.8,37.2
 . . .
 ```
@@ -99,8 +102,8 @@ The following is an example showing the CSV file format where timestamps are spe
 # . . .
 # Descriptive header row n
 timestamp,waterlevel_ft,discharge_cfs
-2023-10-26T01:00:00-07:00,20.5,35.0
-2023-10-26T01:15:00-07:00,21.2,33.1
+2023-10-26T01:00:00-07:00,20.5,33.1
+2023-10-26T01:15:00-07:00,21.2,35.0
 2023-10-26T01:30:00-07:00,21.8,37.2
 . . .
 ```
@@ -134,11 +137,10 @@ Examples might include:
 | Int | Value was interpolated using the previous and next value. |
 | Est | Value was estimated. |
 | Der | Value was derived from a site-specific rating curve. |
-|  |  |
 
 The following rules apply to result qualifiers:
 
-1. Each individual data value may be assigned one or more result qualifiers. 
+1. Each individual data value may be assigned zero or more result qualifiers. 
 2. Where result qualifiers are used, their code values must be encoded within a comma-separated list that is enclosed within text quotations and stored in a separate column in the CSV file. 
 3. Where a column of data requires result qualifiers, the CSV file must include a column containing the result qualifiers and named with the same name used for the data values along with "_qual" appended onto the column name.
 4. Data value columns that do not need result qualifiers do not require a separate column for result qualifier codes.
@@ -150,10 +152,9 @@ The following shows how data qualifying comments must be encoded within a csv fi
 # Descriptive header row 1
 # . . .
 # Descriptive header row n
-# Result Qualifiers
+# Result Qualifier Definitions
 # Code    Definition
 # ----    ----------
-# Ice     Value is impacted by ice buildup on the measurement device.
 # Int     Value was interpolated using the previous and next value.
 # Est     Value was estimated.
 timestamp,waterlevel_ft,waterlevel_ft_cmt
@@ -173,10 +174,10 @@ The following are the requirements for the JSON data format:
 
 1. The JSON payload must contain a key/value pair with a key called "data_array" whose value is a JSON array that contains the timestamps, data values, and any data qualifying comments for Datastreams contained within the payload.
 2. The JSON payload must contain a key/value pair containing timestamp information for data values with the key called "timestamp". 
-3. Datetime values in the timestamp key/value pair MUST be specified in the ISO 8601 datetime format.
+3. Datetime values in the timestamp key/value pair MUST be specified in the ISO 8601 datetime format as specified above.
 4. Timestamps for data MUST either be supplied using UTC time or MUST specify the offset from UTC time as part of the timestamp value to avoid ambiguity in specification of time offsets and daylight saving time.
 3. Each observed property (measured variable) should have a unique name (the equivalent of column names in a CSV file) used as the key to identify it within the data_array, with a value specified for each observed property at each timestamp. 
-6. Each JSON payload MUST contain data values for at least one Datastream but can represent additional time series of data, with data values for each separate Datastream specified as the values for a key/value pair having a unique name for that Datastream (e.g., keys as "waterlevel_ft" or "discharge_cfs" with numeric vales for those observed properties). 
+6. Each JSON payload MUST contain data values for at least one Datastream but can represent additional time series of data, with data values for each separate Datastream specified as the values for a key/value pair having a unique name for that Datastream (e.g., keys "waterlevel_ft" and "discharge_cfs" with numeric vales for those observed properties). 
 7. JSON payloads may contain descriptive metadata about the contents of the payload as separate key/value pairs. This descriptive metadata should be specified outside of the "data_array" key/value pair. 
 9. Each JSON payload MUST use either a single numeric value to represent missing data points (e.g., -9999 is recommended) or must use a single string value (e.g., "NaN"). This NoData value should be defined in the descriptive header/metadata within the file. All non-numeric values included in numeric data key/value pairs will be converted to -9999 upon loading into DWRi's database.
 10. Names used as the keys in key/value pairs for observed properties should consist of alphanumeric characters using a through z, 0 through 9, dashes, or underscores.
@@ -189,12 +190,12 @@ The following is an example of the minimum JSON structure required to encode the
       {
         "timestamp": "2023-10-26T08:00:00Z",
         "waterlevel_ft": 20.5,
-        "discharge_cfs": 35
+        "discharge_cfs": 33.1
       },
       {
         "timestamp": "2023-10-26T08:15:00Z",
         "waterlevel_ft": 21.2,
-        "discharge_cfs": 33.1
+        "discharge_cfs": 35.0
       },
       {
         "timestamp": "2023-10-26T08:30:00Z",
@@ -222,26 +223,28 @@ Where a data provider wishes to include descriptive metadata in the JSON payload
       "code": "waterlevel_ft",
       "units": "feet",
       "processing_level_code": "0",
-      "processing_level_description": "Raw data"
+      "processing_level_description": "Raw data",
+      "nodata_value": -9999
     },
     {
       "name": "Discharge",
       "code": "discharge_cfs",
       "units": "Cubic feet per second",
       "processing_level_code": "0",
-      "processing_level_description": "Raw data"
+      "processing_level_description": "Raw data",
+      "nodata_value": -9999
     }
   ],
   "data_arrary": [
     {
       "timestamp": "2023-10-26T08:00:00Z",
       "waterlevel_ft": 20.5,
-      "discharge_cfs": 35.0
+      "discharge_cfs": 33.1
     },
     {
       "timestamp": "2023-10-26T08:15:00Z",
       "waterlevel_ft": 21.2,
-      "discharge_cfs": 33.1
+      "discharge_cfs": 35.0
     },
     {
       "timestamp": "2023-10-26T08:30:00Z",
@@ -256,7 +259,7 @@ Where a data provider wishes to include descriptive metadata in the JSON payload
 
 Similar to the CSV format, the following rules apply to adding data qualifying comments to the JSON format as result qualifiers:
 
-1. Each individual data value result may be assigned one or more data qualifying comments as result qualifiers. 
+1. Each individual data value result may be assigned zero or more result qualifiers. 
 2. Where multiple result qualifiers are used, they must be encoded within a JSON arrary and encoded within a separate element within the JSON file. 
 3. The JSON structure should encode result qualifiers in an element with the same name as the data value element, but with "_qual" appended to the end.
 4. Data values that do not need result qualifiers do not require a qualifier element.
@@ -276,14 +279,16 @@ The following shows how data qualifying comments must be encoded within a JSON f
       "code": "waterlevel_ft",
       "units": "feet",
       "processing_level_code": "0",
-      "processing_level_description": "Raw data"
+      "processing_level_description": "Raw data",
+      "nodata_value": -9999
     },
     {
       "name": "Discharge",
       "code": "discharge_cfs",
       "units": "Cubic feet per second",
       "processing_level_code": "0",
-      "processing_level_description": "Raw data"
+      "processing_level_description": "Raw data",
+      "nodata_value": -9999
     }
   ],
   "data_array": [
@@ -294,13 +299,13 @@ The following shows how data qualifying comments must be encoded within a JSON f
         "Int",
         "Est"
       ],
-      "discharge_cfs": 35.0,
+      "discharge_cfs": 33.1,
       "discharge_cfs_qual": "Der"
     },
     {
       "timestamp": "2023-10-26T08:15:00Z",
       "waterlevel_ft": 21.2,
-      "discharge_cfs": 33.1,
+      "discharge_cfs": 35.0,
       "discharge_cfs_qual": "Der"
     },
     {
@@ -326,3 +331,5 @@ The following shows how data qualifying comments must be encoded within a JSON f
   ]
 }
 ```
+
+In the example above, the first data value for "waterlevel_ft" includes two result qualifier codes. All of the values in the payload for "discharge_cfs" include a single result qualifier. Result qualifier codes and descriptions are defined in separate metadata element outside of the ```data_array``` element.
