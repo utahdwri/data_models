@@ -18,6 +18,7 @@ The following are useful definitions in the specification of the acceptable data
 * **Datastream**: is a time series of numeric observations of a particular observed variable  collected at a single monitoring site/location, using a consistent sensor or observation procedure.
 * **ProcessingLevel**: The degree of processing or quality control that has been applied to observations (e.g., raw data versus quality controlle data).
 * **Units**: The measurment units associated with an observation (e.g., cubic feet per second, acre-feet, feet).
+* **ResultQualifier**: A data qualifying comment added to a data value.
 
 ## Design Principles
 
@@ -29,7 +30,7 @@ The data formats described below were designed according to the following princi
 
 ## Handling Datetime Values
 
-It is necessary that datatime values representing timestamps for collected data be represented accurately in data files supplied to DWRi to avoid any ambiguity in when a data value was recorded. For both of DWRi's accepted data formats (CSV and JSON), all timestamps MUST be specified as a single string value encoded using the [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601). This international standard for formatting datatime values provides some flexibility; however, we define here the exact format that MUST be used in all provided data as follows:
+It is necessary that datetime values representing timestamps for collected data be represented accurately in data files supplied to DWRi to avoid any ambiguity in when a data value was recorded. For both of DWRi's accepted data formats (CSV and JSON), all timestamps MUST be specified as a single string value encoded using the [ISO 8601 format](https://en.wikipedia.org/wiki/ISO_8601). This international standard for formatting datatime values provides some flexibility; however, we define here the exact format that MUST be used in all provided data as follows:
 
 “YYYY-MM-DDThh:mm:ss.sTZD” 
 
@@ -80,7 +81,7 @@ The following are the requirements for the CSV file format:
 
 The following is an example showing the CSV file format where timestamps are specified in UTC time. The ". . ." characters indicate that any number of descriptive header rows may be included and any number of data rows may be included:
 
-```
+```csv
 # Descriptive header row 1
 # . . .
 # Descriptive header row n
@@ -93,7 +94,7 @@ timestamp,waterlevel_ft,discharge_cfs
 
 The following is an example showing the CSV file format where timestamps are specified in U.S. Mountain Standard Time:
 
-```
+```csv
 # Descriptive header row 1
 # . . .
 # Descriptive header row n
@@ -117,6 +118,52 @@ The following are optional features and best practices for the CSV file format:
         * Methods used for data collection
         * Processing level or quality control information
     * Any discliamers for the data 
+    * Definition of any result qualifiers used in the CSV file, including code and definition.
+
+### Handling Result Qualifiers in the CSV Format
+
+DWRi's standard data format specification will allow inclusion of data qualifying comments as result qualfiers on individual data values. In DWRi's database, result qualifiers are defined as:
+* Code: A brief text code defining the result qualifier.
+* Description: A text string describing or defining the result qualifier code.
+
+Examples might include:
+
+| Code | Definition|
+| --- | --- |
+| Ice | Value is impacted by ice buildup on the measurement device. |
+| Int | Value was interpolated using the previous and next value. |
+| Est | Value was estimated. |
+| Der | Value was derived from a site-specific rating curve. |
+|  |  |
+
+The following rules apply to result qualifiers:
+
+1. Each individual data value may be assigned one or more result qualifiers. 
+2. Where result qualifiers are used, their code values must be encoded within a comma-separated list that is enclosed within text quotations and stored in a separate column in the CSV file. 
+3. Where a column of data requires result qualifiers, the CSV file must include a column containing the result qualifiers and named with the same name used for the data values along with "_qual" appended onto the column name.
+4. Data value columns that do not need result qualifiers do not require a separate column for result qualifier codes.
+5. **IMPORTANT: Adding data values to DWRi's database that use result qualifiers requires that the result qualifiers first be defined in DWRi's database. Thus, result qualifier codes and their definitions MUST be communicated to DWRi and entered into DWRi's database prior to being used in a data file. Any result qualifier codes encountered in a data file that do not exist in DWRi's database will be omitted and may cause errors in loading data.**
+
+The following shows how data qualifying comments must be encoded within a csv file that has one column of data for water level:
+
+```csv
+# Descriptive header row 1
+# . . .
+# Descriptive header row n
+# Result Qualifiers
+# Code    Definition
+# ----    ----------
+# Ice     Value is impacted by ice buildup on the measurement device.
+# Int     Value was interpolated using the previous and next value.
+# Est     Value was estimated.
+timestamp,waterlevel_ft,waterlevel_ft_cmt
+2023-10-26T01:00:00-07:00,20.5,
+2023-10-26T01:15:00-07:00,21.2,"Int,Est"
+2023-10-26T01:30:00-07:00,21.8,
+. . .
+```
+
+In the above example, the third data value has two result qualifiers associated with that single data value.
 
 ## JSON Data Format Specification
 
@@ -124,7 +171,7 @@ As an alternative to CSV, some organizations may want to provide access to their
 
 The following are the requirements for the JSON data format:
 
-1. The JSON payload must contain a key/value pair with a key called "data_array" whose value is a JSON array that contains the timestamps and data values for Datastreams contained within the payload.
+1. The JSON payload must contain a key/value pair with a key called "data_array" whose value is a JSON array that contains the timestamps, data values, and any data qualifying comments for Datastreams contained within the payload.
 2. The JSON payload must contain a key/value pair containing timestamp information for data values with the key called "timestamp". 
 3. Datetime values in the timestamp key/value pair MUST be specified in the ISO 8601 datetime format.
 4. Timestamps for data MUST either be supplied using UTC time or MUST specify the offset from UTC time as part of the timestamp value to avoid ambiguity in specification of time offsets and daylight saving time.
@@ -200,6 +247,81 @@ Where a data provider wishes to include descriptive metadata in the JSON payload
       "timestamp": "2023-10-26T08:30:00Z",
       "waterlevel_ft": 21.8,
       "discharge_cfs": 37.2
+    }
+  ]
+}
+```
+
+### Handling Result Qualifiers in the JSON Format
+
+Similar to the CSV format, the following rules apply to adding data qualifying comments to the JSON format as result qualifiers:
+
+1. Each individual data value result may be assigned one or more data qualifying comments as result qualifiers. 
+2. Where multiple result qualifiers are used, they must be encoded within a JSON arrary and encoded within a separate element within the JSON file. 
+3. The JSON structure should encode result qualifiers in an element with the same name as the data value element, but with "_qual" appended to the end.
+4. Data values that do not need result qualifiers do not require a qualifier element.
+5. **IMPORTANT: Adding data values to DWRi's database that use result qualifiers requires that those result qualifiers first be defined in DWRi's database. Thus, result qualifiers and their definitions MUST be communicated to DWRi and entered into DWRi's database prior to being used in a data file. While we suggest a best practice of defining result qualifiers within the data file as shown in the example below, any result qualifiers encountered in a data file that do not exist in DWRi's database may be omitted and may cause errors in loading data.**
+
+The following shows how data qualifying comments must be encoded within a JSON file:
+
+```JSON
+{
+  "query_date": "2023-10-26T09:00:00Z",
+  "station_name": "Logan River station xyz",
+  "latitude": 41.7397,
+  "longitude": -111.7915,
+  "datastreams": [
+    {
+      "name": "Water level",
+      "code": "waterlevel_ft",
+      "units": "feet",
+      "processing_level_code": "0",
+      "processing_level_description": "Raw data"
+    },
+    {
+      "name": "Discharge",
+      "code": "discharge_cfs",
+      "units": "Cubic feet per second",
+      "processing_level_code": "0",
+      "processing_level_description": "Raw data"
+    }
+  ],
+  "data_array": [
+    {
+      "timestamp": "2023-10-26T08:00:00Z",
+      "waterlevel_ft": 20.5,
+      "waterlevel_ft_qual": [
+        "Int",
+        "Est"
+      ],
+      "discharge_cfs": 35.0,
+      "discharge_cfs_qual": "Der"
+    },
+    {
+      "timestamp": "2023-10-26T08:15:00Z",
+      "waterlevel_ft": 21.2,
+      "discharge_cfs": 33.1,
+      "discharge_cfs_qual": "Der"
+    },
+    {
+      "timestamp": "2023-10-26T08:30:00Z",
+      "waterlevel_ft": 21.8,
+      "discharge_cfs": 37.2,
+      "discharge_cfs_qual": "Der"
+    }
+  ],
+  "result_qualifiers": [
+    {
+      "code": "Int",
+      "description": "Value was interpolated using the previous and next value."
+    },
+    {
+      "code": "Est",
+      "description": "Value was estimated."
+    },
+    {
+      "code": "Der",
+      "description": "Value was derived from a site-specific rating curve."
     }
   ]
 }
