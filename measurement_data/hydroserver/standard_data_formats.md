@@ -6,7 +6,7 @@ Standardizing the acceptable data formats to be used by data providers is a way 
 
 There are two acceptable formats - comma separated values (CSV) and JavaScript Object Notation (JSON) that are described in the sections below. Both of these formats are designed for simple encoding of time series of observational data along with associated metadata that will aid in their interpretation.
 
-As an alternative to these data formats, data providers may also serve their data through a public Open Geospatial Consortium (OGC) SensorThings API (version 1.1) with the Data Array extension enabled. The SensorThings API is a standard for managing and sharing sensor data, offering a RESTful interface to access time series data from Internet of Things (IoT) devices. For more information, refer to the [SensorThings API v1.1 specification](https://docs.ogc.org/is/18-088/18-088.html).
+As an alternative to these data formats, data providers may also serve their data through a public Open Geospatial Consortium (OGC) SensorThings API (version 1.1). The SensorThings API is a standard for managing and sharing sensor data, offering a RESTful interface to access time series data from Internet of Things (IoT) devices. For more information, refer to the [SensorThings API v1.1 specification](https://docs.ogc.org/is/18-088/18-088.html).
 
 ## Definitions
 
@@ -142,7 +142,7 @@ The following rules apply to result qualifiers:
 
 1. Each individual data value may be assigned zero or more result qualifiers. 
 2. Where result qualifiers are used, their code values must be encoded within a comma-separated list that is enclosed within text quotations and stored in a separate column in the CSV file. 
-3. Where a column of data requires result qualifiers, the CSV file must include a column containing the result qualifiers and named with the same name used for the data values along with "_qual" appended onto the column name.
+3. Where a column of data requires result qualifiers, the CSV file must include a column containing the result qualifiers and named with the same name used for the data values along with "_qualifier" appended onto the column name.
 4. Data value columns that do not need result qualifiers do not require a separate column for result qualifier codes.
 5. **IMPORTANT: Adding data values to DWRi's database that use result qualifiers requires that the result qualifiers first be defined in DWRi's database. Thus, result qualifier codes and their definitions MUST be communicated to DWRi and entered into DWRi's database prior to being used in a data file. Any result qualifier codes encountered in a data file that do not exist in DWRi's database will be omitted and may cause errors in loading data.**
 
@@ -157,7 +157,7 @@ The following shows how data qualifying comments must be encoded within a csv fi
 # ----    ----------
 # Int     Value was interpolated using the previous and next value.
 # Est     Value was estimated.
-timestamp,waterlevel_ft,waterlevel_ft_cmt
+timestamp,waterlevel_ft,waterlevel_ft_qualifier
 2023-10-26T01:00:00-07:00,20.5,
 2023-10-26T01:15:00-07:00,21.2,"Int,Est"
 2023-10-26T01:30:00-07:00,21.8,
@@ -235,7 +235,7 @@ Where a data provider wishes to include descriptive metadata in the JSON payload
       "nodata_value": -9999
     }
   ],
-  "data_arrary": [
+  "data_array": [
     {
       "timestamp": "2023-10-26T08:00:00Z",
       "waterlevel_ft": 20.5,
@@ -260,8 +260,8 @@ Where a data provider wishes to include descriptive metadata in the JSON payload
 Similar to the CSV format, the following rules apply to adding data qualifying comments to the JSON format as result qualifiers:
 
 1. Each individual data value result may be assigned zero or more result qualifiers. 
-2. Where multiple result qualifiers are used, they must be encoded within a JSON arrary and encoded within a separate element within the JSON file. 
-3. The JSON structure should encode result qualifiers in an element with the same name as the data value element, but with "_qual" appended to the end.
+2. Where result qualifiers are used, they must be encoded within a JSON arrary and encoded within a separate element within the JSON file. 
+3. The JSON structure should encode result qualifiers in an element with the same name as the data value element, but with "_qualifier" appended to the end.
 4. Data values that do not need result qualifiers do not require a qualifier element.
 5. **IMPORTANT: Adding data values to DWRi's database that use result qualifiers requires that those result qualifiers first be defined in DWRi's database. Thus, result qualifiers and their definitions MUST be communicated to DWRi and entered into DWRi's database prior to being used in a data file. While we suggest a best practice of defining result qualifiers within the data file as shown in the example below, any result qualifiers encountered in a data file that do not exist in DWRi's database may be omitted and may cause errors in loading data.**
 
@@ -295,24 +295,21 @@ The following shows how data qualifying comments must be encoded within a JSON f
     {
       "timestamp": "2023-10-26T08:00:00Z",
       "waterlevel_ft": 20.5,
-      "waterlevel_ft_qual": [
-        "Int",
-        "Est"
-      ],
+      "waterlevel_ft_qualifier": ["Int","Est"],
       "discharge_cfs": 33.1,
-      "discharge_cfs_qual": "Der"
+      "discharge_cfs_qualifier": ["Der"]
     },
     {
       "timestamp": "2023-10-26T08:15:00Z",
       "waterlevel_ft": 21.2,
       "discharge_cfs": 35.0,
-      "discharge_cfs_qual": "Der"
+      "discharge_cfs_qualifier": ["Der"]
     },
     {
       "timestamp": "2023-10-26T08:30:00Z",
       "waterlevel_ft": 21.8,
       "discharge_cfs": 37.2,
-      "discharge_cfs_qual": "Der"
+      "discharge_cfs_qualifier": ["Der"]
     }
   ],
   "result_qualifiers": [
